@@ -206,13 +206,23 @@ M5 = synth( cc( mf, 13, 1 )*4, [1], 12, .3, 0x70020599),
 
 BS = sinify( cc( bs, 12 ) / 8 ) * seq( bsv, 12 ),
 
+CH = M2 / 8 + M3 / 8 + M4 / 8,
+RV = lp( rv( M2 / 8 + M3 / 8 + M4 / 8 , 12e3, .7 ), 4),
+
 DR = beat( drk, 12 ) + beat( [s], 12 ) * .9 * seq( drs, 12 ) + beat( [h], 11 ) * seq( drh, 11 ),
 K = lp( beat( drk, 12, 2e5 ), 2),
 
-//comp = lim( lp( M1 / 6, 2) + lp( rv( M2 / 8 + M3 / 8 + M4 / 8 , 12e3, .7 ), 4) + M5 / 8, 5e-3),
-comp = lim( K / 4 + lp( M1 / 12, 1) + lp( rv( M2 / 8 + M3 / 8 + M4 / 8 , 12e3, .7 ), 4) / 2 + M5 / 16, 9e-3),
+comp = pan => lim( K / 4 + (
+	pan ?
+		lp( M1 / 9, .7 ) + RV / 2 + M5 / 16
+	:
+		lp( M1 / 11, .7 ) + RV / 3 + CH / 11 + M5 / 14
+	), 9e-3),
 
-Master = pan => comp * .4 + DR * .5 + K / 4 + BS / 2,
+
+Master = pan => comp( pan ) * .4 + DR * .5 + K / 4 + BS / 2,
 
 //lim( Master(0) * .6 + lim( Master(0) * .5, .1 ) * .3, .001 )
-lim( Master(0) * .8 + lim( Master(0), .1 ) * .2, .001 )
+song = pan => lim( Master( pan ) * .8 + lim( Master( pan ), .1 ) * .2, .001 ),
+
+[ song(0), song(1) ]
