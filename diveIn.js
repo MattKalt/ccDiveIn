@@ -45,9 +45,9 @@ bt = beat = (arr, spd, vel = 2e4, vol = 1, T = t, oct = 0) =>
 	m(vel / (T & (2 ** (spd - oct) / seq( arr, spd ) ) - 1), vol),
 
 ls = sin(t2 / 9 & t2 >> 5), // long snare
-//s = sin(t>>5), // acoustic-sounding grungy snare
+//ls = sin(t>>5), // acoustic-sounding grungy snare
 //s = (((t*8/48)>>9) & 1) ? 0 : sin(t / 9 & t >> 5), // Snare
-s = seq( [ls, 0], 9), // Snare
+s = seq( [ls, 0], 11), // Snare
 S = seq( [ls, 0], 8), // double snare
 //s = sin((t | t * .7) >> 4), // quieter snare
 //h = 1 & t * 441/480, // long Hihat
@@ -172,7 +172,9 @@ sy = synth = (melody, velTrack, speed, x, y, ...z)=>
 s2s = sinify = x => sin( x*PI/64 ) * 126 + 128,
 
 R = ( str, regex, replace ) => str.replaceAll( regex, replace ),
-cc = ( str, speed, vol=1 ) => m( t * 2 ** ( str.charCodeAt( ( t >> speed ) % str.length ) / 12 - 7 ), vol ),
+//cc = ( str, speed, vol=1 ) => m( t * 2 ** ( str.charCodeAt( ( t >> speed ) % str.length ) / 12 - 7 ), vol ),
+cc = ( str, speed, ) => t * 2 ** ( str.charCodeAt( ( t >> speed ) % str.length ) / 12 - 7 ),
+
 
 //---------------------------SEQUENCES--------------
 
@@ -180,24 +182,37 @@ cc = ( str, speed, vol=1 ) => m( t * 2 ** ( str.charCodeAt( ( t >> speed ) % str
 ma = "aAAZAAZacAaceAecaAAZAAZacAacfAec",
 mb = R( ma, "A", "B"),
 
+bs = j( r( 2, [ r( 14, "e"), "qe" ] ) ) + j( r( 2, [ r( 14, "f"), "rf" ] ) ),
+bsv = " 11 11 1 1 1 111",
+
+
 mc = "a`^]",
 md = "cceeffeecceeffhi",
 me = "jijlmljl",
 mf = "oqrquqrtvqoqrtuvxxxyuuvxvvutrrqq",
 
+drk = j( r( 3, sp( "10000100" ) ) ) + "10000102",
+drs = "00100010",
+drh = "0111011111010111",
+
+
 //--------------------------MIXER-----------------
 
-M1 = synth( cc( ma + mb, 12, 1 ), [1], 12, 1.5, 0x30070426),
+M1 = synth( m( cc( ma + mb, 12 ), 1 ), [1], 12, 1.5, 0x30070426),
 M2 = synth( cc( mc, 15, 1 )*8, [1], 15, .3, 0x34070F99),
 M3 = synth( cc( md, 14, 1 )*8, [1], 14, .3, 0x34070F99),
 M4 = synth( cc( me, 15, 1 )*8, [1], 15, .3, 0x34070F99),
 M5 = synth( cc( mf, 13, 1 )*4, [1], 12, .3, 0x70020599),
 
+BS = sinify( cc( bs, 12 ) / 8 ) * seq( bsv, 12 ),
+
+DR = beat( drk, 12 ) + beat( [s], 12 ) * .9 * seq( drs, 12 ) + beat( [h], 11 ) * seq( drh, 11 ),
+K = lp( beat( drk, 12, 2e5 ), 2),
+
 //comp = lim( lp( M1 / 6, 2) + lp( rv( M2 / 8 + M3 / 8 + M4 / 8 , 12e3, .7 ), 4) + M5 / 8, 5e-3),
-comp = lim( lp( M1 / 12, 1) + lp( rv( M2 / 8 + M3 / 8 + M4 / 8 , 12e3, .7 ), 4) / 2 + M5 / 16, 3e-3),
+comp = lim( K / 4 + lp( M1 / 12, 1) + lp( rv( M2 / 8 + M3 / 8 + M4 / 8 , 12e3, .7 ), 4) / 2 + M5 / 16, 9e-3),
 
+Master = pan => comp * .4 + DR * .5 + K / 4 + BS / 2,
 
-
-comp
-
-//cc( ma + mb, 13, .25 ) + cc( mc , 16, .125 ) + cc( md , 15, .125 ) + cc( me , 16, .125 ) + cc( mf , 14, .125 )
+//lim( Master(0) * .6 + lim( Master(0) * .5, .1 ) * .3, .001 )
+lim( Master(0) * .8 + lim( Master(0), .1 ) * .2, .001 )
