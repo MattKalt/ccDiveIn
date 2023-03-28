@@ -172,7 +172,6 @@ sy = synth = (melody, velTrack, speed, x, y, ...z)=>
 s2s = sinify = x => sin( x*PI/64 ) * 126 + 128,
 
 R = ( str, regex, replace ) => str.replaceAll( regex, replace ),
-//cc = ( str, speed, vol=1 ) => m( t * 2 ** ( str.charCodeAt( ( t >> speed ) % str.length ) / 12 - 7 ), vol ),
 cc = ( str, speed, ) => t * 2 ** ( str.charCodeAt( ( t >> speed ) % str.length ) / 12 - 7 ),
 
 
@@ -180,9 +179,9 @@ cc = ( str, speed, ) => t * 2 ** ( str.charCodeAt( ( t >> speed ) % str.length )
 
 
 ma = "aAAZAAZacAaceAecaAAZAAZacAacfAec",
-mb = R( ma, "A", "B"),
+mb = R( ma, "A", "B" ),
 
-bs = j( r( 2, [ r( 14, "e"), "qe" ] ) ) + j( r( 2, [ r( 14, "f"), "rf" ] ) ),
+bs = j( r( 2, [ r( 14, "e" ), "qe" ] ) ) + j( r( 2, [ r( 14, "f" ), "rf" ] ) ),
 bsv = " 11 11 1 1 1 111",
 
 
@@ -191,7 +190,7 @@ md = "cceeffeecceeffhi",
 me = "jijlmljl",
 mf = "oqrquqrtvqoqrtuvxxxyuuvxvvutrrqq",
 
-drk = j( r( 3, sp( "10000100" ) ) ) + "10000102",
+drk = j( r( 3, "10000100" ) ) + "10000102",
 drs = "00100010",
 drh = "0111011111010111",
 
@@ -199,24 +198,27 @@ drh = "0111011111010111",
 //--------------------------MIXER-----------------
 
 M1 = synth( m( cc( ma + mb, 12 ), 1 ), [1], 12, 1.5, 0x30070426),
-M2 = synth( cc( mc, 15, 1 )*8, [1], 15, .3, 0x34070F99),
-M3 = synth( cc( md, 14, 1 )*8, [1], 14, .3, 0x34070F99),
-M4 = synth( cc( me, 15, 1 )*8, [1], 15, .3, 0x34070F99),
-M5 = synth( cc( mf, 13, 1 )*4, [1], 12, .3, 0x70020599),
+M1 /= ( ( cc( ma + mb, 12 ) / t ) + 3 ),
+M1 *= 2,
+
+M2 = synth( cc( mc, 15 ) * 8, [1], 15, .3, 0x34070F99),
+M3 = synth( cc( md, 14 ) * 8, [1], 14, .3, 0x34070F99),
+M4 = synth( cc( me, 15 ) * 8, [1], 15, .3, 0x34070F99),
+M5 = synth( cc( mf, 13 ) * 4, [1], 12, .3, 0x70020599),
 
 BS = sinify( cc( bs, 12 ) / 8 ) * seq( bsv, 12 ),
 
 CH = M2 / 8 + M3 / 8 + M4 / 8,
-RV = lp( rv( M2 / 8 + M3 / 8 + M4 / 8 , 12e3, .7 ), 4),
+RV = lp( rv( M2 / 8 + M3 / 8 + M4 / 8 , 12e3, .7 ), 4 ),
 
 DR = beat( drk, 12 ) + beat( [s], 12 ) * .9 * seq( drs, 12 ) + beat( [h], 11 ) * seq( drh, 11 ),
 K = lp( beat( drk, 12, 2e5 ), 2),
 
 comp = pan => lim( K / 4 + (
 	pan ?
-		lp( M1 / 9, .7 ) + RV / 2 + M5 / 16
+		M1 / 7 + RV / 2 + M5 / 16
 	:
-		lp( M1 / 11, .7 ) + RV / 3 + CH / 11 + M5 / 14
+		M1 / 11 + RV / 3 + CH / 11 + M5 / 14
 	), 9e-3),
 
 
