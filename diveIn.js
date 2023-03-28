@@ -5,7 +5,7 @@
 t2 = t,
 
 //Change t here, not below, or it messes with the snare/hihat sounds
-t /= 3,
+t /= 2,
 
 // Repeat x beats of y
 // SUPER useful if you're writing complex beats/melodies
@@ -187,13 +187,16 @@ mf = "oqrquqrtvqoqrtuvxxxyuuvxvvutrrqq",
 
 //--------------------------MIXER-----------------
 
-M1 = synth( cc( ma + mb, 12, 1 )*4, [1], 12, 1.5, 0x30070426),
-M2 = synth( cc( mc, 15, 1 )*8, [1], 15, .3, 0x34010F19),
-M3 = synth( cc( md, 14, 1 )*8, [1], 14, .3, 0x34010F19),
-M4 = synth( cc( me, 15, 1 )*8, [1], 15, .3, 0x34010F19),
-M5 = synth( cc( mf, 13, 1 )*8, [1], 12, .3, 0x70020599),
+M1 = synth( cc( ma + mb, 12, 1 ), [1], 12, 1.5, 0x30070426),
+M2 = synth( cc( mc, 15, 1 )*8, [1], 15, .3, 0x34070F99),
+M3 = synth( cc( md, 14, 1 )*8, [1], 14, .3, 0x34070F99),
+M4 = synth( cc( me, 15, 1 )*8, [1], 15, .3, 0x34070F99),
+M5 = synth( cc( mf, 13, 1 )*4, [1], 12, .3, 0x70020599),
 
-comp = lim( M1 / 6 + rv( M2 / 8 + M3 / 8 + M4 / 8 , 13e2, .6 )*3 + M5 / 8, 5e-3),
+//comp = lim( lp( M1 / 6, 2) + lp( rv( M2 / 8 + M3 / 8 + M4 / 8 , 12e3, .7 ), 4) + M5 / 8, 5e-3),
+comp = lim( lp( M1 / 12, 1) + lp( rv( M2 / 8 + M3 / 8 + M4 / 8 , 12e3, .7 ), 4) / 2 + M5 / 16, 3e-3),
+
+
 
 comp
 
