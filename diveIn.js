@@ -98,6 +98,8 @@ lim = limiter = (x, sp = .1) => (
 	(x-mi) * 255/(mx-mi)
 ),
 
+clip = x => x ? min( x, 255 ) : 0,
+
 //downsample
 //dsp = downsample = (x, res) => (
 //	x = fx[fxi] = t2 & res ? x : fx[fxi],
@@ -130,16 +132,17 @@ lim = limiter = (x, sp = .1) => (
 // Side effects: you can't start the song at any t, and output is always full-volume
 hm = harmonify = (x, tone, waveTableSize = 256 * t2/t | 0 ) => {
 	//play from the buffer
-	if( t2 > waveTableSize) {
-		o = fx[ fxi + ( x * t2 / t & waveTableSize - 1) ];
-		fxi += waveTableSize;
+	if( fx[fxi] > waveTableSize ) {
+		o = fx[ fxi + 1 + ( x * t2 / t & waveTableSize - 1) ];
+		fxi += 1 + waveTableSize;
 		return o
 	}
 	//fill the buffer
 	for (i=0; i<8; i++) {
-		fx[ fxi + t2 ] ^= ( 1 & (tone>>i) ) * (i+1)/2 * t
+		fx[ fxi + 1 + fx[fxi] ] ^= ( 1 & (tone>>i) ) * (i+1)/2 * fx[fxi] * t / t2
 	}
-	fxi += waveTableSize;
+	fx[fxi]++;
+	fxi += 1 + waveTableSize;
 	//return x //not strictly necessary unless the wavetable size is large enough to notice silence at the start
 },
 
@@ -177,13 +180,13 @@ cc = ( str, speed, ) => t * 2 ** ( str.charCodeAt( ( t >> speed ) % str.length )
 
 //---------------------------SEQUENCES--------------
 
+t || (
 
 ma = "aAAZAAZacAaceAecaAAZAAZacAacfAec",
 mb = R( ma, "A", "B" ),
 
 bs = j( r( 2, [ r( 14, "e" ), "qe" ] ) ) + j( r( 2, [ r( 14, "f" ), "rf" ] ) ),
 bsv = " 11 11 1 1 1 111",
-
 
 mc = "a`^]",
 md = "cceeffeecceeffhi",
@@ -192,7 +195,9 @@ mf = "oqrquqrtvqoqrtuvxxxyuuvxvvutrrqq",
 
 drk = j( r( 3, "10000100" ) ) + "10000102",
 drs = "00100010",
-drh = "0111011111010111",
+drh = "0111011111010111"
+
+),
 
 
 //--------------------------MIXER-----------------
@@ -209,20 +214,20 @@ M5 = synth( cc( mf, 13 ) * 4, [1], 12, .3, 0x70020599),
 BS = sinify( cc( bs, 12 ) / 8 ) * seq( bsv, 12 ),
 
 CH = M2 / 8 + M3 / 8 + M4 / 8,
-RV = lp( rv( M2 / 8 + M3 / 8 + M4 / 8 , 12e3, .7 ), 4 ),
+RV = lp( rv( M2 / 8 + M3 / 8 + M4 / 8 , 12e3, .8 ), 7 ),
 
 DR = beat( drk, 12 ) + beat( [s], 12 ) * .9 * seq( drs, 12 ) + beat( [h], 11 ) * seq( drh, 11 ),
 K = lp( beat( drk, 12, 2e5 ), 2),
 
 comp = pan => lim( K / 4 + (
 	pan ?
-		M1 / 7 + RV / 2 + M5 / 16
+		M1 / 6 + RV / 2 + M5 / 17
 	:
-		M1 / 11 + RV / 3 + CH / 11 + M5 / 14
+		M1 / 9 + RV / 3 + CH / 11 + M5 / 13
 	), 9e-3),
 
 
-Master = pan => comp( pan ) * .4 + DR * .5 + K / 4 + BS / 2,
+Master = pan => clip( comp( pan ) * .4 + DR * .5 + K / 4 + BS / 2 ),
 
 //lim( Master(0) * .6 + lim( Master(0) * .5, .1 ) * .3, .001 )
 song = pan => lim( Master( pan ) * .8 + lim( Master( pan ), .1 ) * .2, .001 ),
